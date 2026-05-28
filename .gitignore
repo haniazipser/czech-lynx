@@ -6,7 +6,7 @@ __pycache__/
 venv/
 
 # Data
-data/
+kaggle-data/
 *.csv
 *.zip
 *.tar.gz
