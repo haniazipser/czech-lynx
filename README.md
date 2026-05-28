@@ -43,6 +43,21 @@ After extraction:
 python run_baseline.py 
 ```
 
+## W&B login
+
+If you want experiment tracking with Weights & Biases, login first:
+
+```bash
+wandb login
+```
+
+Then follow the URL and paste your API key when prompted.
+
+If you prefer environment variables, set:
+
+```bash
+export WANDB_API_KEY=your_api_key_here
+```
 
 ## Visualizing dataset
 
