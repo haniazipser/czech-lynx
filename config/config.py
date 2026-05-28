@@ -11,6 +11,6 @@ class DataConfig(BaseModel):
     batch_size: int = 64
     num_workers: int = 4
     experiment_type: Literal["baseline", "metric_learning"]
-    epochs: int = 30
+    epochs: int = 15
     lr: float = 1e-4
     weight_decay: float = 1e-4
