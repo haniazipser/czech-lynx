@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Data
+data/
+*.csv
+*.zip
+*.tar.gz
+
+# Checkpoints
+checkpoints/
+
+# WandB
+wandb/
+
+# Środowisko
+.env
+*.env
+
+# IDE
+.vscode/
+.idea/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
