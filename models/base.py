@@ -18,3 +18,6 @@ class BaseModel(ABC, nn.Module):
     def target_layer(self) -> nn.Module:
         """Layer to hook for GradCAM — each subclass defines its own."""
         ...
+
+    def encode(self, x: torch.Tensor) -> torch.Tensor:
+        """Get normalised embedding for retrieval evaluator."""

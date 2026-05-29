@@ -1,6 +1,6 @@
 # data/splits.py
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Tuple
 import pandas as pd
 from wildlife_datasets import datasets, splits
 
@@ -36,3 +36,26 @@ class CzechLynxSplitter:
         print(f"  train: {len(train_df):>6} photos | {len(train_ids):>4} animals")
         print(f"  test:  {len(test_df):>6} photos | {len(test_ids):>4} animals")
         print(f"  overlap: {len(train_ids & test_ids)} | nly in test: {len(test_ids - train_ids)}")
+
+    def get_query_gallery(
+            self,
+            split_type: SplitType,
+            n_gallery: int = 1,
+            seed: int = 42,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        test_df = self.get_predefined(split_type, "test")
+        gallery_idx, query_idx = [], []
+
+        for identity, group in test_df.groupby("identity"):
+            n = min(n_gallery, len(group))
+            sampled = group.sample(n=n, random_state=seed)
+            gallery_idx.extend(sampled.index.tolist())
+            query_idx.extend(group.drop(sampled.index).index.tolist())
+
+        query_df = test_df.loc[query_idx].reset_index(drop=True)
+        gallery_df = test_df.loc[gallery_idx].reset_index(drop=True)
+
+        assert len(query_df) + len(gallery_df) == len(test_df), \
+            "query + gallery do not sum up to whole test set"
+
+        return query_df, gallery_df

@@ -6,6 +6,7 @@ import torch.nn as nn
 from config.presets.baseline import get_config
 from data.dataloader import CzechLynxDataModule
 from data.transforms import get_transforms
+from evaluation.retrieval import RetrievalEvaluator
 from models.baseline import EfficientNetBaseline
 from training.trainer import Trainer
 from xai.gradcam import run_gradcam_analysis
@@ -32,7 +33,8 @@ def main():
     if run_id is None:
         print(f"Num classes (train): {dm.num_classes}")
         train_loader = dm.train_loader()
-        test_loader = dm.test_loader()
+        query_loader = dm.query_loader()
+        gallery_loader = dm.gallery_loader()
 
         run = wandb.init(
             entity="haniazipser2004-",
@@ -46,10 +48,12 @@ def main():
             model=model,
             cfg=cfg,
             train_loader=train_loader,
-            test_loader=test_loader,
+            query_loader=query_loader,
+            gallery_loader=gallery_loader,
             device=device,
             checkpoint_dir=f"run/{run_id}/checkpoints",
-            criterion=nn.CrossEntropyLoss(label_smoothing=0.1)
+            criterion=nn.CrossEntropyLoss(label_smoothing=0.1),
+            evaluator=RetrievalEvaluator(device)
         )
         trainer.train(run)
         run.finish()
