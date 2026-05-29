@@ -20,6 +20,7 @@ class Trainer:
         train_loader: DataLoader,
         test_loader: DataLoader,
         device: torch.device,
+        criterion: nn.Module,
         checkpoint_dir: str = "checkpoints",
     ):
         self.model = model.to(device)
@@ -29,7 +30,7 @@ class Trainer:
         self.device = device
         self.checkpoint_dir = checkpoint_dir
 
-        self.criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+        self.criterion = criterion
         self.optimizer = AdamW(
             filter(lambda p: p.requires_grad, model.parameters()),
             lr=cfg.lr,
