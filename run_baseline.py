@@ -1,3 +1,4 @@
+import argparse
 import torch
 import wandb
 
@@ -9,42 +10,51 @@ from training.trainer import Trainer
 from xai.gradcam import run_gradcam_analysis
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--run-id", type=str, default=None,
+                        help="Existing wandb run ID — skips training, runs GradCAM only.")
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
     cfg = get_config()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}")
 
-
     dm = CzechLynxDataModule(cfg)
-    print(f"Num classes (train): {dm.num_classes}")
-
-    train_loader = dm.train_loader()
-    test_loader = dm.test_loader()
-
-
     model = EfficientNetBaseline(num_classes=dm.num_classes)
 
+    run_id = args.run_id
 
-    run = wandb.init(
-        entity="haniazipser2004-",
-        project="czech-lynx",
-        name=f"baseline-efficientnet-{cfg.split_type}",
-        config=cfg.model_dump(),
-    )
+    if run_id is None:
+        print(f"Num classes (train): {dm.num_classes}")
+        train_loader = dm.train_loader()
+        test_loader = dm.test_loader()
 
-    trainer = Trainer(
-        model=model,
-        cfg=cfg,
-        train_loader=train_loader,
-        test_loader=test_loader,
-        device=device,
-    )
-    trainer.train(run)
-    run.finish()
+        run = wandb.init(
+            entity="haniazipser2004-",
+            project="czech-lynx",
+            name=f"baseline-efficientnet-{cfg.split_type}",
+            config=cfg.model_dump(),
+        )
+        run_id = run.id
 
-    # --- GradCAM ---
-    print("\nGenerowanie GradCAM...")
-    model.load_state_dict(torch.load("best_baseline.pt", map_location=device))
+        trainer = Trainer(
+            model=model,
+            cfg=cfg,
+            train_loader=train_loader,
+            test_loader=test_loader,
+            device=device,
+            checkpoint_dir=f"run/{run_id}/checkpoints",
+        )
+        trainer.train(run)
+        run.finish()
+
+    print("\nRunning GradCAM...")
+    checkpoint = f"run/{run_id}/checkpoints/best.pt"
+    model.load_state_dict(torch.load(checkpoint, map_location=device))
     _, val_transform = get_transforms(cfg.experiment_type)
 
     run_gradcam_analysis(
@@ -52,8 +62,7 @@ def main():
         dataset=dm.test_ds,
         device=device,
         val_transform=val_transform,
-        num_samples=12,
-        save_path=f"gradcam_{cfg.split_type}.png",
+        save_path=f"run/{run_id}/gradcam_{cfg.split_type}.png",
     )
 
 

@@ -20,12 +20,14 @@ class Trainer:
         train_loader: DataLoader,
         test_loader: DataLoader,
         device: torch.device,
+        checkpoint_dir: str = "checkpoints",
     ):
         self.model = model.to(device)
         self.cfg = cfg
         self.train_loader = train_loader
         self.test_loader = test_loader
         self.device = device
+        self.checkpoint_dir = checkpoint_dir
 
         self.criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
         self.optimizer = AdamW(
@@ -59,9 +61,9 @@ class Trainer:
     def train(
         self,
         run: wandb.sdk.wandb_run.Run,
-        checkpoint_dir: str = "checkpoints",
         checkpoint_every: int = 5,
     ):
+        checkpoint_dir = self.checkpoint_dir
         os.makedirs(checkpoint_dir, exist_ok=True)
         best_acc = 0.0
 
