@@ -43,43 +43,24 @@ class Trainer:
         self.scheduler = CosineAnnealingLR(self.optimizer, T_max=cfg.epochs)
         self.evaluator = evaluator
 
-    # def _run_epoch(self, loader: DataLoader, train: bool) -> tuple[float, float]:
-    #     self.model.train(train)
-    #     total_loss, correct, total = 0.0, 0, 0
-    #
-    #     with torch.set_grad_enabled(train):
-    #         for imgs, labels in loader:
-    #             imgs, labels = imgs.to(self.device), labels.to(self.device)
-    #             logits = self.model(imgs)
-    #             loss = self.criterion(logits, labels)
-    #
-    #             if train:
-    #                 self.optimizer.zero_grad()
-    #                 loss.backward()
-    #                 self.optimizer.step()
-    #
-    #             total_loss += loss.item() * imgs.size(0)
-    #             correct += (logits.argmax(1) == labels).sum().item()
-    #             total += imgs.size(0)
-    #
-    #     return total_loss / total, correct / total
-
-    def _train_epoch(self) -> tuple[float, float]:
-        self.model.train()
+    def _run_epoch(self, train: bool) -> tuple[float, float]:
+        self.model.train(train)
         total_loss, correct, total = 0.0, 0, 0
 
-        for imgs, labels in self.train_loader:
-            imgs, labels = imgs.to(self.device), labels.to(self.device)
-            logits = self.model(imgs)
-            loss = self.criterion(logits, labels)
+        with torch.set_grad_enabled(train):
+            for imgs, labels in self.train_loader:
+                imgs, labels = imgs.to(self.device), labels.to(self.device)
+                logits = self.model(imgs)
+                loss = self.criterion(logits, labels)
 
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
+                if train:
+                    self.optimizer.zero_grad()
+                    loss.backward()
+                    self.optimizer.step()
 
-            total_loss += loss.item() * imgs.size(0)
-            correct += (logits.argmax(1) == labels).sum().item()
-            total += imgs.size(0)
+                total_loss += loss.item() * imgs.size(0)
+                correct += (logits.argmax(1) == labels).sum().item()
+                total += imgs.size(0)
 
         return total_loss / total, correct / total
 
@@ -93,7 +74,7 @@ class Trainer:
         best_rank1 = 0.0
 
         for epoch in range(1, self.cfg.epochs + 1):
-            train_loss, train_acc = self._train_epoch()
+            train_loss, train_acc = self._run_epoch(train=True)
             self.scheduler.step()
 
             metrics = self.evaluator.evaluate(
