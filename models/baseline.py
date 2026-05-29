@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torchvision import models
-
+import torch.nn.functional as F
 from models.base import BaseModel
 
 
@@ -36,3 +36,6 @@ class EfficientNetBaseline(BaseModel):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.classifier(self.get_embeddings(x))
+
+    def encode(self, x: torch.Tensor) -> torch.Tensor:
+        return F.normalize(self.get_embeddings(x), dim=1)
