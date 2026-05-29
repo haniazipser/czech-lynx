@@ -2,6 +2,7 @@ import argparse
 import torch
 import wandb
 
+import torch.nn as nn
 from config.presets.baseline import get_config
 from data.dataloader import CzechLynxDataModule
 from data.transforms import get_transforms
@@ -48,6 +49,7 @@ def main():
             test_loader=test_loader,
             device=device,
             checkpoint_dir=f"run/{run_id}/checkpoints",
+            criterion=nn.CrossEntropyLoss(label_smoothing=0.1)
         )
         trainer.train(run)
         run.finish()
