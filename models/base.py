@@ -21,3 +21,4 @@ class BaseModel(ABC, nn.Module):
 
     def encode(self, x: torch.Tensor) -> torch.Tensor:
         """Get normalised embedding for retrieval evaluator."""
+        ...
