@@ -62,6 +62,7 @@ def main():
     print("\nRunning GradCAM...")
     checkpoint = f"run/{run_id}/checkpoints/best.pt"
     model.load_state_dict(torch.load(checkpoint, map_location=device))
+    model = model.to(device)
     _, val_transform = get_transforms(cfg.experiment_type)
 
     run_gradcam_analysis(
