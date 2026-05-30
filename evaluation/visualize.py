@@ -40,7 +40,7 @@ def run_tsne_analysis(
     coords = TSNE(n_components=2, perplexity=30, random_state=42).fit_transform(embeddings)
 
     fig, axes = plt.subplots(1, 2, figsize=(18, 8))
-    fig.suptitle(f"t-SNE of {model.__name__()} Embeddings", fontsize=14)
+    fig.suptitle(f"t-SNE of {model.__class__.__name__} Embeddings", fontsize=14)
 
     unique_ids = list(set(identities))
     id_to_int  = {uid: i for i, uid in enumerate(unique_ids)}
