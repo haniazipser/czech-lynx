@@ -9,7 +9,8 @@ from data.transforms import get_transforms
 from evaluation.retrieval import RetrievalEvaluator
 from models.baseline import EfficientNetBaseline
 from training.trainer import Trainer
-from xai.gradcam import run_gradcam_analysis
+from evaluation.xai.gradcam import run_gradcam_analysis
+from evaluation.visualize import run_tsne_analysis
 
 
 def parse_args():
@@ -69,6 +70,14 @@ def main():
         device=device,
         val_transform=val_transform,
         save_path=f"run/{run_id}/gradcam_{cfg.split_type}.png",
+    )
+
+    run_tsne_analysis(
+        model=model,
+        dataset=dm.test_ds,
+        device=device,
+        val_transform=val_transform,
+        save_path=f"run/{run_id}/tsne.png"
     )
 
 
