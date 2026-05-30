@@ -5,3 +5,5 @@ numpy~=2.4.6
 torchvision~=0.22.1+cu118
 pydantic~=2.13.4
 matplotlib~=3.10.9
+wandb~=0.27.0
+scikit-learn~=1.8.0

@@ -10,7 +10,7 @@ from evaluation.retrieval import RetrievalEvaluator
 from models.baseline import EfficientNetBaseline
 from training.trainer import Trainer
 from evaluation.xai.gradcam import run_gradcam_analysis
-from evaluation.visualize import run_tsne_analysis
+from evaluation.visualize import run_tsne_analysis, run_tsne_camera_vs_identity
 
 
 def parse_args():
@@ -28,7 +28,6 @@ def main():
 
     dm = CzechLynxDataModule(cfg)
     model = EfficientNetBaseline(num_classes=dm.num_classes)
-
     run_id = args.run_id
 
     if run_id is None:
@@ -73,12 +72,23 @@ def main():
         save_path=f"run/{run_id}/gradcam_{cfg.split_type}.png",
     )
 
+    print("\nRunning t-SNE...")
+
     run_tsne_analysis(
         model=model,
         dataset=dm.test_ds,
         device=device,
         val_transform=val_transform,
+        color_by=["identity", "trap_id"],
         save_path=f"run/{run_id}/tsne.png"
+    )
+
+    run_tsne_camera_vs_identity(
+        model=model,
+        dataset=dm.test_ds,
+        device=device,
+        val_transform=val_transform,
+        save_path=f"run/{run_id}/tsne_camera_proof.png"
     )
 
 
