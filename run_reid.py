@@ -52,13 +52,8 @@ def main():
             num_classes=dm.num_classes,
         ).to(device)
 
-        all_params = (
-            list(filter(lambda p: p.requires_grad, model.parameters())) +
-            list(filter(lambda p: p.requires_grad, criterion.parameters()))
-        )
-
         optimizer = AdamW([
-            # Backbone (Swin)
+            # Backbone
             {
                 "params": filter(lambda p: p.requires_grad, model.backbone.parameters()),
                 "lr": 3e-5
