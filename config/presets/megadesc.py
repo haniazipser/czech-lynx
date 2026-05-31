@@ -3,4 +3,6 @@ from config.config import DataConfig
 def get_config() -> DataConfig:
     return DataConfig(
         experiment_type="metric_learning",
+        image_size=384,
+        batch_size=16,
     )

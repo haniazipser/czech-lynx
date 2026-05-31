@@ -19,7 +19,7 @@ class CzechLynxDataModule:
         test_df = splitter.get_predefined(cfg.split_type, "test")
         query_df, gallery_df = splitter.get_query_gallery(cfg.split_type)
 
-        train_transform, val_transform= get_transforms(cfg.experiment_type)
+        train_transform, val_transform= get_transforms(cfg.experiment_type, cfg.image_size)
 
         self.train_ds = CzechLynxDataset(train_df, cfg.data_root, train_transform)
         self.test_ds  = CzechLynxDataset(test_df,  cfg.data_root, val_transform)
