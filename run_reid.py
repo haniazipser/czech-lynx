@@ -57,11 +57,19 @@ def main():
             list(filter(lambda p: p.requires_grad, criterion.parameters()))
         )
 
-        optimizer = AdamW(
-            all_params,
-            lr=cfg.lr,
-            weight_decay=cfg.weight_decay
-        )
+        optimizer = AdamW([
+            # Backbone (Swin)
+            {
+                "params": filter(lambda p: p.requires_grad, model.backbone.parameters()),
+                "lr": 3e-5
+            },
+            # ArcFace
+            {
+                "params": list(filter(lambda p: p.requires_grad, model.head.parameters())) +
+                          list(filter(lambda p: p.requires_grad, criterion.parameters())),
+                "lr": 3e-4
+            }
+        ], weight_decay=cfg.weight_decay)
 
         scheduler_warmup = LinearLR(
             optimizer,
