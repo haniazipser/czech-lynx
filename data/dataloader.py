@@ -34,7 +34,7 @@ class CzechLynxDataModule:
         labels = list(self.train_ds.df["identity"].map(self.train_ds.label_map))
         class_counts = np.bincount(labels)
         weights = 1.0 / class_counts[labels]
-        sampler = WeightedRandomSampler(weights, num_samples=len(weights), replacement=True)
+        sampler = WeightedRandomSampler(weights, num_samples=min(len(weights),2000), replacement=True)
         return DataLoader(
             self.train_ds,
             batch_size=self.cfg.batch_size,

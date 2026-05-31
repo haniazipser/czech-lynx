@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import torch
 import torch.nn as nn
@@ -72,12 +73,15 @@ class Trainer:
         best_rank1 = 0.0
 
         for epoch in range(1, self.cfg.epochs + 1):
+            print(f"train {datetime.now().strftime('%H:%M:%S')} | Epoch {epoch}/{self.cfg.epochs}")
             train_loss, train_acc = self._run_epoch()
             self.scheduler.step()
-
+            print(f"finished train  {datetime.now().strftime('%H:%M:%S')} | Epoch {epoch}/{self.cfg.epochs}")
+            print(f"eval  {datetime.now().strftime('%H:%M:%S')} | Epoch {epoch}/{self.cfg.epochs}")
             metrics = self.evaluator.evaluate(
                 self.model, self.query_loader, self.gallery_loader
             )
+            print(f"finished eval  {datetime.now().strftime('%H:%M:%S')} | Epoch {epoch}/{self.cfg.epochs}")
 
             log = {
                 "epoch": epoch,
