@@ -37,7 +37,7 @@ class MegaDescriptorModel(BaseModel):
         return self.head(features)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.get_embeddings(x)
+        return self.encode(x)
 
     def encode(self, x: torch.Tensor) -> torch.Tensor:
         return F.normalize(self.get_embeddings(x), dim=1)
