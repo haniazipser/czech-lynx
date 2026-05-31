@@ -70,15 +70,15 @@ class Trainer:
         best_rank1 = 0.0
 
         for epoch in range(1, self.cfg.epochs + 1):
-            print(f"train {datetime.now().strftime('%H:%M:%S')} | Epoch {epoch}/{self.cfg.epochs}")
+            #print(f"train {datetime.now().strftime('%H:%M:%S')} | Epoch {epoch}/{self.cfg.epochs}")
             train_loss, train_acc = self._run_epoch()
             self.scheduler.step()
-            print(f"finished train  {datetime.now().strftime('%H:%M:%S')} | Epoch {epoch}/{self.cfg.epochs}")
-            print(f"eval  {datetime.now().strftime('%H:%M:%S')} | Epoch {epoch}/{self.cfg.epochs}")
+            #print(f"finished train  {datetime.now().strftime('%H:%M:%S')} | Epoch {epoch}/{self.cfg.epochs}")
+            #print(f"eval  {datetime.now().strftime('%H:%M:%S')} | Epoch {epoch}/{self.cfg.epochs}")
             metrics = self.evaluator.evaluate(
                 self.model, self.query_loader, self.gallery_loader
             )
-            print(f"finished eval  {datetime.now().strftime('%H:%M:%S')} | Epoch {epoch}/{self.cfg.epochs}")
+            #print(f"finished eval  {datetime.now().strftime('%H:%M:%S')} | Epoch {epoch}/{self.cfg.epochs}")
 
             log = {
                 "epoch": epoch,
@@ -95,8 +95,9 @@ class Trainer:
 
             acc_str = f" acc {train_acc:.3f} |" if train_acc is not None else ""
             print(
+                f"{datetime.now().strftime('%H:%M:%S')} | "
                 f"Epoch {epoch:>3}/{self.cfg.epochs} | "
-                f"loss {train_loss:.4f} |{acc_str} "
+                f"train loss {train_loss:.4f} |{acc_str} "
                 f"Rank-1 {metrics['rank1']:.4f} mAP {metrics['map']:.4f}"
             )
 
