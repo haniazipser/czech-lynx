@@ -2,9 +2,10 @@ from datetime import datetime
 import os
 import torch
 import torch.nn as nn
+from timm.optim import optimizer_kwargs
 from torch.utils.data import DataLoader
-from torch.optim import AdamW
-from torch.optim.lr_scheduler import CosineAnnealingLR
+from torch.optim import AdamW, Optimizer
+from torch.optim.lr_scheduler import CosineAnnealingLR, LRScheduler
 
 import wandb
 
@@ -25,6 +26,8 @@ class Trainer:
         device: torch.device,
         criterion: nn.Module,
         evaluator: RetrievalEvaluator,
+        optimizer: Optimizer,
+        scheduler: LRScheduler | None = None,
         checkpoint_dir: str = "checkpoints",
         track_accuracy: bool = False,
     ):
@@ -37,15 +40,9 @@ class Trainer:
         self.checkpoint_dir = checkpoint_dir
         self.evaluator = evaluator
         self.track_accuracy = track_accuracy
-
         self.criterion = criterion.to(device)
-
-        all_params = (
-            list(filter(lambda p: p.requires_grad, model.parameters())) +
-            list(filter(lambda p: p.requires_grad, criterion.parameters()))
-        )
-        self.optimizer = AdamW(all_params, lr=cfg.lr, weight_decay=cfg.weight_decay)
-        self.scheduler = CosineAnnealingLR(self.optimizer, T_max=cfg.epochs)
+        self.optimizer = optimizer
+        self.scheduler = scheduler
 
     def _run_epoch(self) -> tuple[float, float | None]:
         self.model.train()

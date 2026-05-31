@@ -14,3 +14,6 @@ class DataConfig(BaseModel):
     epochs: int = 15
     lr: float = 1e-4
     weight_decay: float = 1e-4
+    warmup_epochs: int = 0
+    warmup_start: float  = 0.0
+    warmup_end: float = 0.0
