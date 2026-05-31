@@ -1,4 +1,6 @@
 import argparse
+import os
+
 import torch
 import wandb
 
@@ -17,12 +19,26 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--run-id", type=str, default=None,
                         help="Existing wandb run ID — skips training, runs GradCAM only.")
+    parser.add_argument("--data-root", type=str, default=None,
+                        help="Override data root path.")
+    parser.add_argument("--csv-path", type=str, default=None,
+                        help="Override CSV path.")
+    parser.add_argument("--checkpoint-dir", type=str, default=None,
+                        help="Override checkpoint dir (e.g. Google Drive path).")
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
     cfg = get_config()
+
+    if args.data_root:
+        cfg.data_root = args.data_root
+    if args.csv_path:
+        cfg.csv_path = args.csv_path
+
+    checkpoint_base = args.checkpoint_dir or "run"
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}")
 
@@ -51,7 +67,7 @@ def main():
             query_loader=query_loader,
             gallery_loader=gallery_loader,
             device=device,
-            checkpoint_dir=f"run/{run_id}/checkpoints",
+            checkpoint_dir=f"{checkpoint_base}/{run_id}/checkpoints",
             criterion=nn.CrossEntropyLoss(label_smoothing=0.1),
             evaluator=RetrievalEvaluator(device)
         )
@@ -59,17 +75,20 @@ def main():
         run.finish()
 
     print("\nRunning GradCAM...")
-    checkpoint = f"run/{run_id}/checkpoints/best.pt"
+    checkpoint = f"{checkpoint_base}/{run_id}/checkpoints/best.pt"
     model.load_state_dict(torch.load(checkpoint, map_location=device))
     model = model.to(device)
     _, val_transform = get_transforms(cfg.experiment_type)
+
+    output_dir = f"{checkpoint_base}/{run_id}"
+    os.makedirs(output_dir, exist_ok=True)
 
     run_gradcam_analysis(
         model=model,
         dataset=dm.test_ds,
         device=device,
         val_transform=val_transform,
-        save_path=f"run/{run_id}/gradcam_{cfg.split_type}.png",
+        save_path=f"{output_dir}/gradcam_{cfg.split_type}.png",
     )
 
     print("\nRunning t-SNE...")
@@ -80,7 +99,7 @@ def main():
         device=device,
         val_transform=val_transform,
         color_by=["identity", "trap_id"],
-        save_path=f"run/{run_id}/tsne.png"
+        save_path=f"{output_dir}/tsne.png"
     )
 
     run_tsne_camera_vs_identity(
@@ -88,7 +107,7 @@ def main():
         dataset=dm.test_ds,
         device=device,
         val_transform=val_transform,
-        save_path=f"run/{run_id}/tsne_camera_proof.png"
+        save_path=f"{output_dir}/tsne_camera_proof.png"
     )
 
 
