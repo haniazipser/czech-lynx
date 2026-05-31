@@ -12,7 +12,7 @@ class MegaDescriptorModel(BaseModel):
         super().__init__()
 
         self.backbone = create_model(
-            "hf-hub:BVRA/MegaDescriptor-L-384",
+            "hf-hub:BVRA/MegaDescriptor-T-224",
             pretrained=True,
             num_classes=0,
         )
@@ -30,7 +30,7 @@ class MegaDescriptorModel(BaseModel):
 
     @property
     def target_layer(self) -> nn.Module:
-        return self.backbone.blocks[-1]
+        return self.backbone.layers[-1]
 
     def get_embeddings(self, x: torch.Tensor) -> torch.Tensor:
         features = self.backbone(x)
