@@ -37,25 +37,35 @@ class CzechLynxSplitter:
         print(f"  test:  {len(test_df):>6} photos | {len(test_ids):>4} animals")
         print(f"  overlap: {len(train_ids & test_ids)} | nly in test: {len(test_ids - train_ids)}")
 
-    def get_query_gallery(
+    def get_query_gallery_from_df(
             self,
-            split_type: SplitType,
+            df: pd.DataFrame,
             n_gallery: int = 1,
             seed: int = 42,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        test_df = self.get_predefined(split_type, "test")
         gallery_idx, query_idx = [], []
-
-        for identity, group in test_df.groupby("identity"):
+        for identity, group in df.groupby("identity"):
             n = min(n_gallery, len(group))
             sampled = group.sample(n=n, random_state=seed)
             gallery_idx.extend(sampled.index.tolist())
             query_idx.extend(group.drop(sampled.index).index.tolist())
 
-        query_df = test_df.loc[query_idx].reset_index(drop=True)
-        gallery_df = test_df.loc[gallery_idx].reset_index(drop=True)
-
-        assert len(query_df) + len(gallery_df) == len(test_df), \
-            "query + gallery do not sum up to whole test set"
-
+        query_df = df.loc[query_idx].reset_index(drop=True)
+        gallery_df = df.loc[gallery_idx].reset_index(drop=True)
         return query_df, gallery_df
+
+    def get_val_test(
+            self,
+            split_type: SplitType,
+            val_ratio: float = 0.5,
+            seed: int = 42,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        test_df = self.get_predefined(split_type, "test")
+        unique_ids = test_df["identity"].drop_duplicates()
+        val_ids = unique_ids.sample(frac=val_ratio, random_state=seed)
+
+        val_df = test_df[test_df["identity"].isin(val_ids)].reset_index(drop=True)
+        test_df = test_df[~test_df["identity"].isin(val_ids)].reset_index(drop=True)
+
+        return val_df, test_df
+
