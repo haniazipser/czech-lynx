@@ -1,5 +1,8 @@
 import argparse
 import torch
+from torch.optim import AdamW
+from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
+
 import wandb
 
 from config.presets.megadesc import get_config
@@ -49,6 +52,37 @@ def main():
             num_classes=dm.num_classes,
         ).to(device)
 
+        optimizer = AdamW([
+            # Backbone
+            {
+                "params": filter(lambda p: p.requires_grad, model.backbone.parameters()),
+                "lr": 3e-5
+            },
+            # ArcFace
+            {
+                "params": list(filter(lambda p: p.requires_grad, model.head.parameters())) +
+                          list(filter(lambda p: p.requires_grad, criterion.parameters())),
+                "lr": 3e-4
+            }
+        ], weight_decay=cfg.weight_decay)
+
+        scheduler_warmup = LinearLR(
+            optimizer,
+            start_factor=cfg.warmup_start,
+            end_factor=cfg.warmup_end,
+            total_iters=cfg.warmup_epochs
+        )
+        scheduler_cosine = CosineAnnealingLR(
+            optimizer,
+            T_max=(cfg.epochs - cfg.warmup_epochs)
+        )
+
+        mega_desc_scheduler = SequentialLR(
+            optimizer,
+            schedulers=[scheduler_warmup, scheduler_cosine],
+            milestones=[cfg.warmup_epochs]
+        )
+
         trainer = Trainer(
             model=model,
             cfg=cfg,
@@ -59,23 +93,16 @@ def main():
             checkpoint_dir=f"run/{run_id}/checkpoints",
             criterion=criterion,
             evaluator=RetrievalEvaluator(device),
+            optimizer=optimizer,
+            scheduler=mega_desc_scheduler
         )
         trainer.train(run)
         run.finish()
 
-    print("\nRunning GradCAM...")
     checkpoint = f"run/{run_id}/checkpoints/best.pt"
     model.load_state_dict(torch.load(checkpoint, map_location=device))
     model = model.to(device)
     _, val_transform = get_transforms(cfg.experiment_type)
-
-    run_gradcam_analysis(
-        model=model,
-        dataset=dm.test_ds,
-        device=device,
-        val_transform=val_transform,
-        save_path=f"run/{run_id}/gradcam_{cfg.split_type}.png",
-    )
 
     print("\nRunning t-SNE...")
     run_tsne_analysis(

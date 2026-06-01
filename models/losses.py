@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 class ArcFaceLoss(nn.Module):
 
-    def __init__(self, embedding_dim: int, num_classes: int, s: float = 64.0, m: float = 0.5):
+    def __init__(self, embedding_dim: int, num_classes: int, s: float = 32.0, m: float = 0.3):
         super().__init__()
         self.s = s
         self.m = m
@@ -21,7 +21,7 @@ class ArcFaceLoss(nn.Module):
         weight = F.normalize(self.weight, dim=1)
 
         cos_theta = torch.mm(embeddings, weight.t()).clamp(-1 + 1e-7, 1 - 1e-7)
-        sin_theta = torch.sqrt(1.0 - cos_theta ** 2)
+        sin_theta = torch.sqrt((1.0 - cos_theta ** 2).clamp(1e-7, 1.0))
 
         cos_theta_m = cos_theta * self.cos_m - sin_theta * self.sin_m
 

@@ -1,5 +1,9 @@
 import argparse
 import torch
+from torch.nn import CrossEntropyLoss
+from torch.optim import AdamW
+from torch.optim.lr_scheduler import CosineAnnealingLR
+
 import wandb
 
 import torch.nn as nn
@@ -44,6 +48,21 @@ def main():
         )
         run_id = run.id
 
+        criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+
+        all_params = (
+                list(filter(lambda p: p.requires_grad, model.parameters())) +
+                list(filter(lambda p: p.requires_grad, criterion.parameters()))
+        )
+
+        optimizer = AdamW(
+            all_params,
+            lr=cfg.lr,
+            weight_decay=cfg.weight_decay
+        )
+
+        scheduler = CosineAnnealingLR(optimizer, T_max=cfg.epochs)
+
         trainer = Trainer(
             model=model,
             cfg=cfg,
@@ -52,8 +71,10 @@ def main():
             gallery_loader=gallery_loader,
             device=device,
             checkpoint_dir=f"run/{run_id}/checkpoints",
-            criterion=nn.CrossEntropyLoss(label_smoothing=0.1),
-            evaluator=RetrievalEvaluator(device)
+            criterion=criterion,
+            evaluator=RetrievalEvaluator(device),
+            optimizer=optimizer,
+            scheduler=scheduler
         )
         trainer.train(run)
         run.finish()
