@@ -12,7 +12,7 @@ class MegaDescriptorModel(BaseModel):
         super().__init__()
 
         self.backbone = create_model(
-            "hf-hub:BVRA/MegaDescriptor-T-224",
+            "hf-hub:BVRA/MegaDescriptor-B-224",
             pretrained=True,
             num_classes=0,
         )

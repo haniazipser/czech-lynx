@@ -7,4 +7,5 @@ def get_config() -> DataConfig:
         weight_decay=0.01,
         warmup_start=0.1,
         warmup_end=1.0,
+        batch_size=16
     )
