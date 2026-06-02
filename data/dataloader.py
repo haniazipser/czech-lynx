@@ -15,7 +15,7 @@ class CzechLynxDataModule:
 
         splitter = CzechLynxSplitter(cfg.data_root, cfg.csv_path)
 
-        train_df = splitter.get_predefined(cfg.split_type, "train")
+        train_df, train_calibrator_df = splitter.get_train_train_calibrator(cfg.split_type)
         val_df, test_df = splitter.get_val_test(cfg.split_type)
 
         # query/gallery for val set
@@ -23,9 +23,14 @@ class CzechLynxDataModule:
         # query/gallery for test set
         test_query_df, test_gallery_df = splitter.get_query_gallery_from_df(test_df)
 
+        #query/gallery for train calibrator set
+        train_calibrator_query_df, train_calibrator_gallery_df = splitter.get_query_gallery_from_df(train_calibrator_df)
+
         train_transform, val_transform= get_transforms(cfg.experiment_type, cfg.image_size)
 
         self.train_ds = CzechLynxDataset(train_df, cfg.data_root, train_transform)
+        self.train_calibrator_query_ds = CzechLynxDataset(train_calibrator_query_df, cfg.data_root, train_transform)
+        self.train_calibrator_gallery_ds = CzechLynxDataset(train_calibrator_gallery_df, cfg.data_root, train_transform)
         self.val_ds = CzechLynxDataset(val_df, cfg.data_root, val_transform)
         self.test_ds  = CzechLynxDataset(test_df,  cfg.data_root, val_transform)
         self.val_query_ds = CzechLynxDataset(val_query_df, cfg.data_root, val_transform)
