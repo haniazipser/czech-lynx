@@ -16,15 +16,22 @@ class CzechLynxDataModule:
         splitter = CzechLynxSplitter(cfg.data_root, cfg.csv_path)
 
         train_df = splitter.get_predefined(cfg.split_type, "train")
-        test_df = splitter.get_predefined(cfg.split_type, "test")
-        query_df, gallery_df = splitter.get_query_gallery(cfg.split_type)
+        val_df, test_df = splitter.get_val_test(cfg.split_type)
+
+        # query/gallery for val set
+        val_query_df, val_gallery_df = splitter.get_query_gallery_from_df(val_df)
+        # query/gallery for test set
+        test_query_df, test_gallery_df = splitter.get_query_gallery_from_df(test_df)
 
         train_transform, val_transform= get_transforms(cfg.experiment_type, cfg.image_size)
 
         self.train_ds = CzechLynxDataset(train_df, cfg.data_root, train_transform)
+        self.val_ds = CzechLynxDataset(val_df, cfg.data_root, val_transform)
         self.test_ds  = CzechLynxDataset(test_df,  cfg.data_root, val_transform)
-        self.query_ds = CzechLynxDataset(query_df, cfg.data_root, val_transform)
-        self.gallery_ds = CzechLynxDataset(gallery_df, cfg.data_root, val_transform)
+        self.val_query_ds = CzechLynxDataset(val_query_df, cfg.data_root, val_transform)
+        self.val_gallery_ds = CzechLynxDataset(val_gallery_df, cfg.data_root, val_transform)
+        self.test_query_ds = CzechLynxDataset(test_query_df, cfg.data_root, val_transform)
+        self.test_gallery_ds = CzechLynxDataset(test_gallery_df, cfg.data_root, val_transform)
 
     @property
     def num_classes(self) -> int:
@@ -52,18 +59,36 @@ class CzechLynxDataModule:
             pin_memory=True,
         )
 
-    def query_loader(self) -> DataLoader:
+    def val_query_loader(self) -> DataLoader:
         return DataLoader(
-            self.query_ds,
+            self.val_query_ds,
             batch_size=self.cfg.batch_size,
             shuffle=False,
             num_workers=self.cfg.num_workers,
             pin_memory=True,
         )
 
-    def gallery_loader(self) -> DataLoader:
+    def val_gallery_loader(self) -> DataLoader:
         return DataLoader(
-            self.gallery_ds,
+            self.val_gallery_ds,
+            batch_size=self.cfg.batch_size,
+            shuffle=False,
+            num_workers=self.cfg.num_workers,
+            pin_memory=True,
+        )
+
+    def test_query_loader(self) -> DataLoader:
+        return DataLoader(
+            self.test_query_ds,
+            batch_size=self.cfg.batch_size,
+            shuffle=False,
+            num_workers=self.cfg.num_workers,
+            pin_memory=True,
+        )
+
+    def test_gallery_loader(self) -> DataLoader:
+        return DataLoader(
+            self.test_gallery_ds,
             batch_size=self.cfg.batch_size,
             shuffle=False,
             num_workers=self.cfg.num_workers,

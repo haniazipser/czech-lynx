@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 class ArcFaceLoss(nn.Module):
 
-    def __init__(self, embedding_dim: int, num_classes: int, s: float = 32.0, m: float = 0.3):
+    def __init__(self, embedding_dim: int, num_classes: int, s: float, m: float):
         super().__init__()
         self.s = s
         self.m = m

@@ -17,3 +17,6 @@ class DataConfig(BaseModel):
     warmup_epochs: int = 0
     warmup_start: float  = 0.0
     warmup_end: float = 0.0
+    arcface_m: float = 0.0
+    arcface_s: float = 0.0
+    arcface_lr: float = 0.0
