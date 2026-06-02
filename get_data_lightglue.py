@@ -100,23 +100,20 @@ def main():
     matcher = LocalMatcher(device)
     data_module = CzechLynxDataModule(cfg=cfg)
 
-    val_query_df = data_module.val_query_ds.df
-    val_gallery_df = data_module.val_gallery_ds.df
+    train_calibrator_query_df = data_module.train_calibrator_query_ds.df
+    train_calibrator_gallery_df = data_module.train_calibrator_gallery_ds.df
 
-    val_query_df = val_query_df.groupby('identity').sample(n=5, random_state=42)
-
-    # 3. Odpalenie ewaluacji
     results_df = evaluate_reid(
-        query_df=val_query_df,
-        gallery_df=val_gallery_df,
+        query_df=train_calibrator_query_df,
+        gallery_df=train_calibrator_gallery_df,
         data_root=cfg.data_root,
         matcher=matcher,
         device=device
     )
 
-    output_path = "val_reid_lightglue_results.csv"
+    output_path = "reid_lightglue_results.csv"
     results_df.to_csv(output_path, index=False)
-    print(f"\n[Sukces] Pipeline ukończony bez ingerencji w transformacje! Wyniki: {output_path}")
+    print(f"\nFile saved to: {output_path}")
 
 if __name__ == "__main__":
     main()

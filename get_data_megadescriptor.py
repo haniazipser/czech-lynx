@@ -51,24 +51,24 @@ def main():
     model = model.to(device)
 
     dm = CzechLynxDataModule(cfg)
-    val_query_df = dm.val_query_ds.df.groupby('identity').sample(n=5, random_state=42)
-    val_gallery_df = dm.val_gallery_ds.df
+    train_calibrator_query_df = dm.train_calibrator_query_ds.df
+    train_calibrator_gallery_df = dm.train_calibrator_gallery_ds.df
 
     _, val_transform = get_transforms(cfg.experiment_type)
 
     query_embs = {}
-    for _, row in tqdm(val_query_df.iterrows(), total=len(val_query_df)):
+    for _, row in tqdm(train_calibrator_query_df.iterrows(), total=len(train_calibrator_query_df)):
         emb = extract_embedding_for_row(row, cfg.data_root, model, val_transform, device)
         if emb is not None:
             query_embs[row['path']] = emb
 
     gallery_embs = {}
-    for _, row in tqdm(val_gallery_df.iterrows(), total=len(val_gallery_df)):
+    for _, row in tqdm(train_calibrator_gallery_df.iterrows(), total=len(train_calibrator_gallery_df)):
         emb = extract_embedding_for_row(row, cfg.data_root, model, val_transform, device)
         if emb is not None:
             gallery_embs[row['path']] = emb
 
-    lightglue_csv_path = "val_reid_lightglue_results.csv"
+    lightglue_csv_path = "reid_lightglue_results.csv"
 
     if not os.path.exists(lightglue_csv_path):
         raise FileNotFoundError(f"File {lightglue_csv_path} not found")
@@ -92,7 +92,7 @@ def main():
 
     df_fusion['megadesc_score'] = megadesc_scores
 
-    output_fusion_path = "val_fusion_combined_scores.csv"
+    output_fusion_path = "fusion_combined_scores.csv"
     df_fusion.to_csv(output_fusion_path, index=False)
 
     print(f"\nResult saved to: {output_fusion_path}")
