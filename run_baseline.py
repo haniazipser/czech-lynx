@@ -15,6 +15,11 @@ from models.baseline import EfficientNetBaseline
 from training.trainer import Trainer
 from evaluation.xai.gradcam import run_gradcam_analysis
 from evaluation.visualize import run_tsne_analysis, run_tsne_camera_vs_identity
+from evaluation.visualize_retrieval import (
+    run_retrieval_examples,
+    run_confusion_analysis, 
+    run_embedding_distance_distribution,
+)
 
 
 def parse_args():
@@ -111,6 +116,13 @@ def main():
         val_transform=val_transform,
         save_path=f"run/{run_id}/tsne_camera_proof.png"
     )
+
+    run_retrieval_examples(model, dm.test_query_ds, dm.test_gallery_ds, device, val_transform,
+        save_path=f"run/{run_id}/retrieval_examples.png")
+    run_confusion_analysis(model, dm.test_query_ds, dm.test_gallery_ds, device, val_transform,
+        save_path=f"run/{run_id}/confusion.png")
+    run_embedding_distance_distribution(model, dm.test_query_ds, dm.test_gallery_ds, device, val_transform,
+        save_path=f"run/{run_id}/distance_dist.png")
 
 
 if __name__ == "__main__":
