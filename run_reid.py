@@ -41,8 +41,8 @@ def run_experiment(cfg, device):
     run_id = run.id
 
     criterion = losses.ArcFaceLoss(
-        num_classes=cfg.num_classes,
-        embedding_size=cfg.embedding_dim,
+        num_classes=dm.num_classes,
+        embedding_size=model.embedding_dim,
         margin=cfg.arcface_m,
         scale=cfg.arcface_s
     ).to(device)
