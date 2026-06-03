@@ -31,44 +31,21 @@ def extract_embedding_for_row(row, base_path, model, transform, device):
         print(f"\n[ERROR] Failed to get embedding for {row['path']}: {e}")
         return None
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--run-id", type=str, default=None,
-                        help="Existing wandb run ID")
-    return parser.parse_args()
-
-def main():
-    cfg = get_config()
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Device: {device}")
-
-    run_id = "test"
-    checkpoint_path = f"run/{run_id}/checkpoints/best.pt"
-
-    print(f"Loading MegaDescriptor from checkpoint: {checkpoint_path}")
-    model = MegaDescriptorModel()
-    model.load_state_dict(torch.load(checkpoint_path, map_location=device))
-    model = model.to(device)
-
-    dm = CzechLynxDataModule(cfg)
-    train_calibrator_query_df = dm.train_calibrator_query_ds.df
-    train_calibrator_gallery_df = dm.train_calibrator_gallery_ds.df
-
+def generate_fusion_scores(cfg, model, query_df, gallery_df, lightglue_csv_path, output_path, device):
     _, val_transform = get_transforms(cfg.experiment_type)
 
     query_embs = {}
-    for _, row in tqdm(train_calibrator_query_df.iterrows(), total=len(train_calibrator_query_df)):
+    for _, row in tqdm(query_df.iterrows(), total=len(query_df)):
         emb = extract_embedding_for_row(row, cfg.data_root, model, val_transform, device)
         if emb is not None:
             query_embs[row['path']] = emb
 
     gallery_embs = {}
-    for _, row in tqdm(train_calibrator_gallery_df.iterrows(), total=len(train_calibrator_gallery_df)):
+    for _, row in tqdm(gallery_df.iterrows(), total=len(gallery_df)):
         emb = extract_embedding_for_row(row, cfg.data_root, model, val_transform, device)
         if emb is not None:
             gallery_embs[row['path']] = emb
 
-    lightglue_csv_path = "reid_lightglue_results.csv"
 
     if not os.path.exists(lightglue_csv_path):
         raise FileNotFoundError(f"File {lightglue_csv_path} not found")
@@ -92,10 +69,50 @@ def main():
 
     df_fusion['megadesc_score'] = megadesc_scores
 
-    output_fusion_path = "fusion_combined_scores.csv"
-    df_fusion.to_csv(output_fusion_path, index=False)
+    df_fusion.to_csv(output_path, index=False)
 
-    print(f"\nResult saved to: {output_fusion_path}")
+    print(f"\nResult saved to: {output_path}")
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--run-id", type=str, default=None,
+                        help="Existing wandb run ID")
+    return parser.parse_args()
+
+def main():
+    cfg = get_config()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Device: {device}")
+
+    run_id = "final_megadesc"
+    checkpoint_path = f"run/{run_id}/checkpoints/best.pt"
+
+    print(f"Loading MegaDescriptor from checkpoint: {checkpoint_path}")
+    model = MegaDescriptorModel()
+    model.load_state_dict(torch.load(checkpoint_path, map_location=device))
+    model = model.to(device)
+
+    dm = CzechLynxDataModule(cfg)
+
+    generate_fusion_scores(
+        cfg, model,
+        dm.train_calibrator_query_ds.df,
+        dm.train_calibrator_gallery_ds.df,
+        "reid_lightglue_results.csv",
+        "fusion_train_scores.csv",
+        device
+    )
+
+    # --- VAL ---
+    generate_fusion_scores(
+        cfg, model,
+        dm.val_query_ds.df,
+        dm.val_gallery_ds.df,
+        "reid_lightglue_val_results.csv",
+        "fusion_val_scores.csv",
+        device
+    )
+
 
 if __name__ == "__main__":
     main()
