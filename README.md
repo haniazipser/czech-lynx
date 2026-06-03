@@ -36,12 +36,6 @@ After extraction:
      ├── CzechLynxDataset-Metadata-Synthetic.csv
 ---
 
-## Start training
-
-```bash
-# New run
-python run_baseline.py 
-```
 
 ## W&B login
 
@@ -64,5 +58,86 @@ export WANDB_API_KEY=your_api_key_here
 ```bash
 python explore_data.py 
 ```
+
+# Training Guide
+
+## Baseline Training
+
+To start a new baseline training run:
+
+```bash
+python run_baseline.py
+```
+
+To resume from an existing run and generate visualizations from a saved checkpoint:
+
+```bash
+python run_baseline.py --run-id <RUN_ID>
+```
+
+The script will automatically load the corresponding checkpoint and create the visualizations.
+
+---
+
+## MegaDescriptor Training
+
+To train the MegaDescriptor model:
+
+```bash
+python run_reid.py
+```
+
+The script supports the same `--run-id` argument for resuming training or loading an existing checkpoint:
+
+```bash
+python run_reid.py --run-id <RUN_ID>
+```
+
+---
+
+## Full WildFusion Training
+
+Training the complete WildFusion pipeline requires a pre-trained MegaDescriptor model.
+
+### Step 1: Generate LightGlue Training Data
+
+Run:
+
+```bash
+python get_data_lightglue.py
+```
+
+This generates the initial training data required for the next stage.
+
+### Step 2: Generate MegaDescriptor Features
+
+Using the run ID of a trained MegaDescriptor model, execute:
+
+```bash
+python get_data_megadescriptor.py --run-id <RUN_ID>
+```
+
+This process creates a CSV file containing the features and labels required for calibrator training.
+
+### Step 3: Train the Calibrator
+
+Once the CSV dataset has been generated, start calibrator training:
+
+```bash
+python run_calibrator.py
+```
+
+After completion, the calibrated model can be used as part of the full WildFusion pipeline.
+
+---
+
+## Training Pipeline Summary
+
+1. Train a MegaDescriptor model (`run_reid.py`).
+2. Generate LightGlue training data (`get_data_lightglue.py`).
+3. Generate MegaDescriptor features using the trained MegaDescriptor run ID (`get_data_megadescriptor.py`).
+4. Train the calibrator (`run_calibrator.py`).
+5. Use the resulting models for the full WildFusion pipeline.
+
 
 

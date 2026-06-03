@@ -72,7 +72,7 @@ class CzechLynxSplitter:
     def get_train_train_calibrator( #TIME SPLIT IS NOT OPEN SET, CODE NEEDS REVIEW FOR THIS CASE!
             self,
             split_type: SplitType,
-            train_ratio:float = 0.80,
+            train_ratio:float = 0.90,
             seed:int = 42,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         test_df = self.get_predefined(split_type, "train")
