@@ -2,9 +2,9 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from matplotlib_venn import venn2
+import matplotlib.patches as mpatches
 from data.splits import CzechLynxSplitter
-
-
 
 DATA_ROOT = Path("data/kaggle-data")
 CSV_PATH = DATA_ROOT / "CzechLynxDataset-Metadata-Real.csv"
@@ -59,6 +59,44 @@ print(f"Osobników z < 20 zdjęć:  {(counts < 20).sum()}")
 print(f"Osobników z > 200 zdjęć: {(counts > 200).sum()}")
 print(f"Osobników z > 500 zdjęć: {(counts > 500).sum()}")
 print(f"\nTop 5 osobników:\n{counts.head()}")
+
+splits = ["time_open", "time_closed", "geo_aware"]
+fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+
+for ax, split in zip(axes, splits):
+    train_df = splitter.get_predefined(split, "train")
+    test_df  = splitter.get_predefined(split, "test")
+    train_ids = set(train_df["identity"])
+    test_ids  = set(test_df["identity"])
+
+    v = venn2([train_ids, test_ids], set_labels=("train", "test"), ax=ax)
+
+    if v.get_patch_by_id("10"):
+        v.get_patch_by_id("10").set_color("#534AB7")
+        v.get_patch_by_id("10").set_alpha(0.6)
+    if v.get_patch_by_id("01"):
+        v.get_patch_by_id("01").set_color("#1D9E75")
+        v.get_patch_by_id("01").set_alpha(0.6)
+    if v.get_patch_by_id("11"):
+        v.get_patch_by_id("11").set_color("#D85A30")
+        v.get_patch_by_id("11").set_alpha(0.7)
+
+    overlap = train_ids & test_ids
+    ax.set_title(
+        f"{split}"
+    )
+
+plt.suptitle("Przecięcie osobników między splitami (train vs test)", fontsize=13)
+legend_handles = [
+    mpatches.Patch(color="#534AB7", alpha=0.6, label="tylko train"),
+    mpatches.Patch(color="#1D9E75", alpha=0.6, label="tylko test"),
+    mpatches.Patch(color="#D85A30", alpha=0.7, label="overlap (train ∩ test)"),
+]
+fig.legend(handles=legend_handles, loc="lower center", ncol=3, fontsize=11,
+           bbox_to_anchor=(0.5, -0.02), frameon=False)
+plt.tight_layout()
+plt.savefig("venn_splits.png", dpi=150)
+plt.show()
 
 #Rozkład splitów czasowych
 for split in ["time_open", "time_closed"]:
