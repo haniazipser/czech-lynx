@@ -13,6 +13,15 @@ import numpy as np
 
 import pycocotools.mask as mask_utils
 
+def get_calibration_subset(df, n_per_identity=3, max_total=200):
+    frames = []
+    for identity, group in df.groupby('identity'):
+        frames.append(group.sample(n=min(len(group), n_per_identity), random_state=42))
+    subset = pd.concat(frames).reset_index(drop=True)
+    if len(subset) > max_total:
+        subset = subset.sample(n=max_total, random_state=42).reset_index(drop=True)
+    return subset
+
 def load_and_crop_via_rle(row, base_path, device, target_size=512):
     try:
         img_path = base_path / row['path']
@@ -93,6 +102,9 @@ def evaluate_reid(query_df, gallery_df, data_root, matcher, device):
 
     return pd.DataFrame(results)
 
+def get_random_subset(df, n_per_identity=5):
+    return df.groupby('identity').apply(lambda x: x.sample(n=min(len(x), n_per_identity))).reset_index(drop=True)
+
 
 def main():
     cfg = get_config()
@@ -100,20 +112,36 @@ def main():
     matcher = LocalMatcher(device)
     data_module = CzechLynxDataModule(cfg=cfg)
 
-    train_calibrator_query_df = data_module.train_calibrator_query_ds.df
-    train_calibrator_gallery_df = data_module.train_calibrator_gallery_ds.df
+    # train_calibrator_query_df = data_module.train_calibrator_query_ds.df
+    # train_calibrator_gallery_df = data_module.train_calibrator_gallery_ds.df
+    #
+    # results_df = evaluate_reid(
+    #     query_df=train_calibrator_query_df,
+    #     gallery_df=train_calibrator_gallery_df,
+    #     data_root=cfg.data_root,
+    #     matcher=matcher,
+    #     device=device
+    # )
+    #
+    # output_path = "reid_lightglue_results.csv"
+    # results_df.to_csv(output_path, index=False)
+    # print(f"\nFile saved to: {output_path}")
+
+    val_query_df = get_calibration_subset(data_module.val_query_ds.df, n_per_identity=4, max_total=200)
+    val_gallery_df = data_module.val_gallery_ds.df
 
     results_df = evaluate_reid(
-        query_df=train_calibrator_query_df,
-        gallery_df=train_calibrator_gallery_df,
+        query_df=val_query_df,
+        gallery_df=val_gallery_df,
         data_root=cfg.data_root,
         matcher=matcher,
         device=device
     )
 
-    output_path = "reid_lightglue_results.csv"
+    output_path = "reid_lightglue_val_results.csv"
     results_df.to_csv(output_path, index=False)
     print(f"\nFile saved to: {output_path}")
+
 
 if __name__ == "__main__":
     main()
