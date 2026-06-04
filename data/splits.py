@@ -83,15 +83,26 @@ class CzechLynxSplitter:
     def get_train_train_calibrator(
             self,
             split_type: SplitType,
-            train_ratio:float = 0.90,
-            seed:int = 42,
+            train_ratio: float = 0.90,
+            seed: int = 42,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        test_df = self.get_predefined(split_type, "train")
-        unique_ids = test_df["identity"].drop_duplicates()
-        val_ids = unique_ids.sample(frac=train_ratio, random_state=seed)
+        train_df = self.get_predefined(split_type, "train")
+        unique_ids = train_df["identity"].drop_duplicates()
 
-        train_df = test_df[test_df["identity"].isin(val_ids)].reset_index(drop=True)
-        train_calibrator_df = test_df[~test_df["identity"].isin(val_ids)].reset_index(drop=True)
+        if split_type == "time_open":
+            test_df = self.get_predefined(split_type, "test")
+            test_ids = set(test_df["identity"])
+            overlap_ids = unique_ids[unique_ids.isin(test_ids)]
+            only_train_ids = unique_ids[~unique_ids.isin(test_ids)]
+            train_ids = pd.concat([
+                overlap_ids.sample(frac=train_ratio, random_state=seed),
+                only_train_ids.sample(frac=train_ratio, random_state=seed),
+            ])
+        else:
+            train_ids = unique_ids.sample(frac=train_ratio, random_state=seed)
 
-        return train_df, train_calibrator_df
+        result_train_df = train_df[train_df["identity"].isin(train_ids)].reset_index(drop=True)
+        train_calibrator_df = train_df[~train_df["identity"].isin(train_ids)].reset_index(drop=True)
+
+        return result_train_df, train_calibrator_df
 
