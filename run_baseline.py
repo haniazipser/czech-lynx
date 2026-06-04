@@ -1,4 +1,5 @@
 import argparse
+from xml.parsers.expat import model
 import torch
 from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW
@@ -15,6 +16,7 @@ from models.baseline import EfficientNetBaseline
 from training.trainer import Trainer
 from evaluation.xai.gradcam import run_gradcam_analysis
 from evaluation.visualize import run_tsne_analysis, run_tsne_camera_vs_identity
+from evaluation.visualize_retrieval import run_all_visualizations
 
 
 def parse_args():
@@ -112,6 +114,14 @@ def main():
         save_path=f"run/{run_id}/tsne_camera_proof.png"
     )
 
+    run_all_visualizations(
+        model=model,
+        query_dataset=dm.test_query_ds,
+        gallery_dataset=dm.test_gallery_ds,
+        device=device,
+        val_transform=val_transform,
+        save_dir=f"run/{run_id}",
+    )
 
 if __name__ == "__main__":
     main()

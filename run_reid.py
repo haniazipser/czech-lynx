@@ -1,5 +1,6 @@
 import argparse
 import json
+from xml.parsers.expat import model
 
 import torch
 from pytorch_metric_learning import losses
@@ -15,6 +16,7 @@ from evaluation.retrieval import RetrievalEvaluator
 from models.reid import MegaDescriptorModel
 from training.trainer import Trainer
 from evaluation.visualize import run_tsne_analysis, run_tsne_camera_vs_identity
+from evaluation.visualize_retrieval import run_all_visualizations
 
 
 def parse_args():
@@ -132,5 +134,14 @@ def main():
         save_path=f"run/{run_id}/tsne_camera_proof.png",
     )
 
+
+    run_all_visualizations(
+        model=model,
+        query_dataset=dm.test_query_ds,
+        gallery_dataset=dm.test_gallery_ds,
+        device=device,
+        val_transform=val_transform,
+        save_dir=f"run/{run_id}",
+    )
 if __name__ == "__main__":
     main()
