@@ -54,7 +54,7 @@ class CzechLynxSplitter:
         gallery_df = df.loc[gallery_idx].reset_index(drop=True)
         return query_df, gallery_df
 
-    def get_val_test( #TIME SPLIT IS NOT OPEN SET, CODE NEEDS REVIEW FOR THIS CASE!
+    def get_val_test(
             self,
             split_type: SplitType,
             val_ratio: float = 0.5,
@@ -62,25 +62,47 @@ class CzechLynxSplitter:
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         test_df = self.get_predefined(split_type, "test")
         unique_ids = test_df["identity"].drop_duplicates()
-        val_ids = unique_ids.sample(frac=val_ratio, random_state=seed)
+
+        if split_type == "time_open": #keep ratio for overlapping identities
+            train_df = self.get_predefined(split_type, "train")
+            train_ids = set(train_df["identity"])
+            known_ids = unique_ids[unique_ids.isin(train_ids)]
+            unknown_ids = unique_ids[~unique_ids.isin(train_ids)]
+            val_ids = pd.concat([
+                known_ids.sample(frac=val_ratio, random_state=seed),
+                unknown_ids.sample(frac=val_ratio, random_state=seed),
+            ])
+        else:
+            val_ids = unique_ids.sample(frac=val_ratio, random_state=seed)
 
         val_df = test_df[test_df["identity"].isin(val_ids)].reset_index(drop=True)
         test_df = test_df[~test_df["identity"].isin(val_ids)].reset_index(drop=True)
 
         return val_df, test_df
 
-    def get_train_train_calibrator( #TIME SPLIT IS NOT OPEN SET, CODE NEEDS REVIEW FOR THIS CASE!
+    def get_train_train_calibrator(
             self,
             split_type: SplitType,
-            train_ratio:float = 0.90,
-            seed:int = 42,
+            train_ratio: float = 0.90,
+            seed: int = 42,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        test_df = self.get_predefined(split_type, "train")
-        unique_ids = test_df["identity"].drop_duplicates()
-        val_ids = unique_ids.sample(frac=train_ratio, random_state=seed)
+        train_df = self.get_predefined(split_type, "train")
+        unique_ids = train_df["identity"].drop_duplicates()
 
-        train_df = test_df[test_df["identity"].isin(val_ids)].reset_index(drop=True)
-        train_calibrator_df = test_df[~test_df["identity"].isin(val_ids)].reset_index(drop=True)
+        if split_type == "time_open":
+            test_df = self.get_predefined(split_type, "test")
+            test_ids = set(test_df["identity"])
+            overlap_ids = unique_ids[unique_ids.isin(test_ids)]
+            only_train_ids = unique_ids[~unique_ids.isin(test_ids)]
+            train_ids = pd.concat([
+                overlap_ids.sample(frac=train_ratio, random_state=seed),
+                only_train_ids.sample(frac=train_ratio, random_state=seed),
+            ])
+        else:
+            train_ids = unique_ids.sample(frac=train_ratio, random_state=seed)
 
-        return train_df, train_calibrator_df
+        result_train_df = train_df[train_df["identity"].isin(train_ids)].reset_index(drop=True)
+        train_calibrator_df = train_df[~train_df["identity"].isin(train_ids)].reset_index(drop=True)
+
+        return result_train_df, train_calibrator_df
 

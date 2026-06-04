@@ -11,5 +11,6 @@ def get_config() -> DataConfig:
         arcface_s= 48,
         lr=0.0001,
         arcface_lr=0.0001,
-        batch_size = 16
+        batch_size = 16,
+        split_type="time_open"
     )
