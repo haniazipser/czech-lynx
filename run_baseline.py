@@ -16,12 +16,7 @@ from models.baseline import EfficientNetBaseline
 from training.trainer import Trainer
 from evaluation.xai.gradcam import run_gradcam_analysis
 from evaluation.visualize import run_tsne_analysis, run_tsne_camera_vs_identity
-from evaluation.visualize_retrieval import (
-    run_all_visualizations,
-    run_retrieval_examples,
-    run_confusion_analysis, 
-    run_embedding_distance_distribution,
-)
+from evaluation.visualize_retrieval import run_all_visualizations
 
 
 def parse_args():
