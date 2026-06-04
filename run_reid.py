@@ -137,8 +137,8 @@ def main():
 
     run_all_visualizations(
         model=model,
-        query_dataset=dm.test_query_ds,
-        gallery_dataset=dm.test_gallery_ds,
+        query_dataset=dm.val_query_ds,
+        gallery_dataset=dm.val_gallery_ds,
         device=device,
         val_transform=val_transform,
         save_dir=f"run/{run_id}",

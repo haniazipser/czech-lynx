@@ -89,7 +89,7 @@ def main():
 
     run_gradcam_analysis(
         model=model,
-        dataset=dm.test_ds,
+        dataset=dm.val_ds,
         device=device,
         val_transform=val_transform,
         save_path=f"run/{run_id}/gradcam_{cfg.split_type}.png",
@@ -99,7 +99,7 @@ def main():
 
     run_tsne_analysis(
         model=model,
-        dataset=dm.test_ds,
+        dataset=dm.val_ds,
         device=device,
         val_transform=val_transform,
         color_by=["identity", "trap_id"],
@@ -108,7 +108,7 @@ def main():
 
     run_tsne_camera_vs_identity(
         model=model,
-        dataset=dm.test_ds,
+        dataset=dm.val_ds,
         device=device,
         val_transform=val_transform,
         save_path=f"run/{run_id}/tsne_camera_proof.png"
@@ -116,8 +116,8 @@ def main():
 
     run_all_visualizations(
         model=model,
-        query_dataset=dm.test_query_ds,
-        gallery_dataset=dm.test_gallery_ds,
+        query_dataset=dm.val_query_ds,
+        gallery_dataset=dm.val_gallery_ds,
         device=device,
         val_transform=val_transform,
         save_dir=f"run/{run_id}",
