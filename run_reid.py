@@ -2,6 +2,7 @@ import argparse
 import json
 
 import torch
+from pytorch_metric_learning import losses
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 
@@ -12,7 +13,6 @@ from data.dataloader import CzechLynxDataModule
 from data.transforms import get_transforms
 from evaluation.retrieval import RetrievalEvaluator
 from models.reid import MegaDescriptorModel
-from models.losses import ArcFaceLoss
 from training.trainer import Trainer
 from evaluation.visualize import run_tsne_analysis, run_tsne_camera_vs_identity
 
@@ -40,11 +40,11 @@ def run_experiment(cfg, device):
     )
     run_id = run.id
 
-    criterion = ArcFaceLoss(
-        embedding_dim=model.embedding_dim,
+    criterion = losses.ArcFaceLoss(
         num_classes=dm.num_classes,
-        s=cfg.arcface_s,
-        m=cfg.arcface_m
+        embedding_size=model.embedding_dim,
+        margin=cfg.arcface_m,
+        scale=cfg.arcface_s
     ).to(device)
 
     optimizer = AdamW([

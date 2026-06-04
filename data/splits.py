@@ -54,7 +54,7 @@ class CzechLynxSplitter:
         gallery_df = df.loc[gallery_idx].reset_index(drop=True)
         return query_df, gallery_df
 
-    def get_val_test(
+    def get_val_test( #TIME SPLIT IS NOT OPEN SET, CODE NEEDS REVIEW FOR THIS CASE!
             self,
             split_type: SplitType,
             val_ratio: float = 0.5,
@@ -68,4 +68,19 @@ class CzechLynxSplitter:
         test_df = test_df[~test_df["identity"].isin(val_ids)].reset_index(drop=True)
 
         return val_df, test_df
+
+    def get_train_train_calibrator( #TIME SPLIT IS NOT OPEN SET, CODE NEEDS REVIEW FOR THIS CASE!
+            self,
+            split_type: SplitType,
+            train_ratio:float = 0.90,
+            seed:int = 42,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        test_df = self.get_predefined(split_type, "train")
+        unique_ids = test_df["identity"].drop_duplicates()
+        val_ids = unique_ids.sample(frac=train_ratio, random_state=seed)
+
+        train_df = test_df[test_df["identity"].isin(val_ids)].reset_index(drop=True)
+        train_calibrator_df = test_df[~test_df["identity"].isin(val_ids)].reset_index(drop=True)
+
+        return train_df, train_calibrator_df
 
