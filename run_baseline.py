@@ -39,8 +39,8 @@ def main():
     if run_id is None:
         print(f"Num classes (train): {dm.num_classes}")
         train_loader = dm.train_loader()
-        query_loader = dm.query_loader()
-        gallery_loader = dm.gallery_loader()
+        query_loader = dm.val_query_loader()
+        gallery_loader = dm.val_gallery_loader()
 
         run = wandb.init(
             entity="haniazipser2004-",
