@@ -43,14 +43,24 @@ def make_eval_loader(dataset, batch_size, num_workers):
     )
 
 
-def build_stage_data(cfg, train_root, train_csv, val_root, val_csv):
-    synthetic_splitter = CzechLynxSplitter(train_root, train_csv)
-    real_splitter = CzechLynxSplitter(val_root, val_csv)
+def build_stage_data(cfg, train_root, train_csv, val_root, val_csv, use_all_train=False):
+    """Build train/val datasets for a stage.
+    
+    Args:
+        use_all_train: If True, use all data in train_csv for training (no split applied).
+                       Useful for synthetic data which may not have split columns.
+    """
+    train_splitter = CzechLynxSplitter(train_root, train_csv)
+    val_splitter = CzechLynxSplitter(val_root, val_csv)
 
-    train_df, _ = synthetic_splitter.get_train_train_calibrator(cfg.split_type)
-    val_df, _ = real_splitter.get_val_test(cfg.split_type)
-
-    val_query_df, val_gallery_df = real_splitter.get_query_gallery_from_df(val_df)
+    if use_all_train:
+        # Use all data for training (no split applied)
+        train_df = train_splitter.df.copy()
+    else:
+        train_df, _ = train_splitter.get_train_train_calibrator(cfg.split_type)
+    
+    val_df, _ = val_splitter.get_val_test(cfg.split_type)
+    val_query_df, val_gallery_df = val_splitter.get_query_gallery_from_df(val_df)
 
     train_transform, val_transform = get_transforms(cfg.experiment_type, cfg.image_size)
 
@@ -61,8 +71,8 @@ def build_stage_data(cfg, train_root, train_csv, val_root, val_csv):
     return train_ds, val_query_ds, val_gallery_ds
 
 
-def train_stage(cfg, device, train_root, train_csv, val_root, val_csv, run_name, resume_from=None):
-    train_ds, val_query_ds, val_gallery_ds = build_stage_data(cfg, train_root, train_csv, val_root, val_csv)
+def train_stage(cfg, device, train_root, train_csv, val_root, val_csv, run_name, resume_from=None, use_all_train=False):
+    train_ds, val_query_ds, val_gallery_ds = build_stage_data(cfg, train_root, train_csv, val_root, val_csv, use_all_train=use_all_train)
     train_loader = make_train_loader(train_ds, cfg.batch_size, cfg.num_workers)
     val_query_loader = make_eval_loader(val_query_ds, cfg.batch_size, cfg.num_workers)
     val_gallery_loader = make_eval_loader(val_gallery_ds, cfg.batch_size, cfg.num_workers)
@@ -147,6 +157,7 @@ def main():
             val_root=real_root,
             val_csv=real_csv,
             run_name=args.pretrain_name,
+            use_all_train=True,
         )
 
     print("Stage 2: Fine-tuning on real train and real validation...")
