@@ -3,5 +3,5 @@ from config.config import DataConfig
 def get_config() -> DataConfig:
     return DataConfig(
         experiment_type="baseline",
-        split_type="geo_aware"
+        split_type="time_open"
     )
