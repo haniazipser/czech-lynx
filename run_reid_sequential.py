@@ -4,7 +4,7 @@ import os
 import numpy as np
 import torch
 from pytorch_metric_learning import losses
-from torch.optim import AdamW
+from torch.optim import AdamW, SGD
 from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 from torch.utils.data import DataLoader, WeightedRandomSampler
 
@@ -71,7 +71,7 @@ def build_stage_data(cfg, train_root, train_csv, val_root, val_csv, use_all_trai
     return train_ds, val_query_ds, val_gallery_ds
 
 
-def train_stage(cfg, device, train_root, train_csv, val_root, val_csv, run_name, resume_from=None, use_all_train=False):
+def train_stage(cfg, device, train_root, train_csv, val_root, val_csv, run_name, resume_from=None, use_all_train=False, optimizer_name: str = "adamw"):
     train_ds, val_query_ds, val_gallery_ds = build_stage_data(cfg, train_root, train_csv, val_root, val_csv, use_all_train=use_all_train)
     train_loader = make_train_loader(train_ds, cfg.batch_size, cfg.num_workers)
     val_query_loader = make_eval_loader(val_query_ds, cfg.batch_size, cfg.num_workers)
@@ -89,16 +89,28 @@ def train_stage(cfg, device, train_root, train_csv, val_root, val_csv, run_name,
         scale=cfg.arcface_s,
     ).to(device)
 
-    optimizer = AdamW([
-        {
-            "params": filter(lambda p: p.requires_grad, model.backbone.parameters()),
-            "lr": cfg.lr,
-        },
-        {
-            "params": list(filter(lambda p: p.requires_grad, model.head.parameters())) + list(filter(lambda p: p.requires_grad, criterion.parameters())),
-            "lr": cfg.lr,
-        },
-    ], weight_decay=cfg.weight_decay)
+    if optimizer_name.lower() == "sgd":
+        optimizer = SGD([
+            {
+                "params": filter(lambda p: p.requires_grad, model.backbone.parameters()),
+                "lr": cfg.lr,
+            },
+            {
+                "params": list(filter(lambda p: p.requires_grad, model.head.parameters())) + list(filter(lambda p: p.requires_grad, criterion.parameters())),
+                "lr": cfg.lr,
+            },
+        ], weight_decay=cfg.weight_decay, momentum=0.9)
+    else:
+        optimizer = AdamW([
+            {
+                "params": filter(lambda p: p.requires_grad, model.backbone.parameters()),
+                "lr": cfg.lr,
+            },
+            {
+                "params": list(filter(lambda p: p.requires_grad, model.head.parameters())) + list(filter(lambda p: p.requires_grad, criterion.parameters())),
+                "lr": cfg.lr,
+            },
+        ], weight_decay=cfg.weight_decay)
 
     scheduler_warmup = LinearLR(optimizer, start_factor=cfg.warmup_start, end_factor=cfg.warmup_end, total_iters=cfg.warmup_epochs)
     scheduler_cosine = CosineAnnealingLR(optimizer, T_max=(cfg.epochs - cfg.warmup_epochs))
@@ -130,6 +142,7 @@ def parse_args():
     parser.add_argument("--pretrain-name", type=str, default="reid-megadescriptor-synthetic-pretrain")
     parser.add_argument("--finetune-name", type=str, default="reid-megadescriptor-real-finetune")
     parser.add_argument("--skip-pretrain", action="store_true", help="Skip synthetic pretraining and only run real fine-tuning.")
+    parser.add_argument("--optimizer", type=str, choices=["adamw", "sgd"], default="adamw", help="Optimizer to use for training")
     return parser.parse_args()
 
 
@@ -141,9 +154,8 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}")
 
-    synthetic_root = cfg.synthetic_data_root
+    root = cfg.data_root
     synthetic_csv = cfg.synthetic_csv_path
-    real_root = cfg.data_root
     real_csv = cfg.csv_path
 
     checkpoint = None
@@ -152,24 +164,26 @@ def main():
         checkpoint = train_stage(
             cfg,
             device,
-            train_root=synthetic_root,
+            train_root=root,
             train_csv=synthetic_csv,
-            val_root=real_root,
+            val_root=root,
             val_csv=real_csv,
             run_name=args.pretrain_name,
             use_all_train=True,
+            optimizer_name=args.optimizer,
         )
 
     print("Stage 2: Fine-tuning on real train and real validation...")
     train_stage(
         cfg,
         device,
-        train_root=real_root,
+        train_root=root,
         train_csv=real_csv,
-        val_root=real_root,
+        val_root=root,
         val_csv=real_csv,
         run_name=args.finetune_name,
         resume_from=checkpoint,
+        optimizer_name=args.optimizer,
     )
 
 
