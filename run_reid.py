@@ -27,7 +27,7 @@ def parse_args():
 
 def run_experiment(cfg, device):
     dm = CzechLynxDataModule(cfg)
-    model = MegaDescriptorModel()
+    model = MegaDescriptorModel(freeze_backbone=False)
 
     print(f"Num classes (train): {dm.num_classes}")
     train_loader = dm.train_loader()
@@ -109,7 +109,7 @@ def main():
         run_id = run_experiment(cfg, device)
 
     dm = CzechLynxDataModule(cfg)
-    model = MegaDescriptorModel()
+    model = MegaDescriptorModel(freeze_backbone=False)
 
     checkpoint = f"run/{run_id}/checkpoints/best.pt"
     model.load_state_dict(torch.load(checkpoint, map_location=device))
