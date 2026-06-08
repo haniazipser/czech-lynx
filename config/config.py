@@ -4,8 +4,16 @@ from typing import Literal
 from pydantic import BaseModel
 #common config
 class DataConfig(BaseModel):
+    # Data sources: "real", "synthetic", or "both"
+    train_data: Literal["real", "synthetic", "both"] = "real"
+    
+    # For real data
     data_root: Path = Path("data/kaggle-data")
     csv_path: Path = Path("data/kaggle-data/CzechLynxDataset-Metadata-Real.csv")
+    
+    # For synthetic data (used when train_data is "synthetic" or "both")
+    synthetic_csv_path: Path = Path("data/kaggle-data/CzechLynxDataset-Metadata-Synthetic.csv")
+    
     split_type: Literal["geo_aware", "time_open", "time_closed"] = "geo_aware"
     image_size: int = 224
     batch_size: int = 64
