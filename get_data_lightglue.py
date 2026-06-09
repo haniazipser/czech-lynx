@@ -112,33 +112,63 @@ def main():
     matcher = LocalMatcher(device)
     data_module = CzechLynxDataModule(cfg=cfg)
 
-    train_calibrator_query_df = data_module.train_calibrator_query_ds.df
-    train_calibrator_gallery_df = data_module.train_calibrator_gallery_ds.df
+    # train_calibrator_query_df = data_module.train_calibrator_query_ds.df
+    # train_calibrator_gallery_df = data_module.train_calibrator_gallery_ds.df
+    #
+    # results_df = evaluate_reid(
+    #     query_df=train_calibrator_query_df,
+    #     gallery_df=train_calibrator_gallery_df,
+    #     data_root=cfg.data_root,
+    #     matcher=matcher,
+    #     device=device
+    # )
+    #
+    # output_path = "reid_lightglue_results.csv"
+    # results_df.to_csv(output_path, index=False)
+    # print(f"\nFile saved to: {output_path}")
+    #
+    # val_query_df = get_calibration_subset(data_module.val_query_ds.df, n_per_identity=4, max_total=200)
+    # val_gallery_df = data_module.val_gallery_ds.df
+    #
+    # results_df = evaluate_reid(
+    #     query_df=val_query_df,
+    #     gallery_df=val_gallery_df,
+    #     data_root=cfg.data_root,
+    #     matcher=matcher,
+    #     device=device
+    # )
+    #
+    # output_path = "reid_lightglue_val_results.csv"
+    # results_df.to_csv(output_path, index=False)
+    # print(f"\nFile saved to: {output_path}")
+
+    # train_calibrator_query_df = data_module.train_calibrator_query_ds.df
+    # train_calibrator_gallery_df = data_module.train_calibrator_gallery_ds.df
+    #
+    # results_df = evaluate_reid(
+    #     query_df=train_calibrator_query_df,
+    #     gallery_df=train_calibrator_gallery_df,
+    #     data_root=cfg.data_root,
+    #     matcher=matcher,
+    #     device=device
+    # )
+    #
+    # output_path = "reid_lightglue_results.csv"
+    # results_df.to_csv(output_path, index=False)
+    # print(f"\nFile saved to: {output_path}")
+
+    test_query_df = data_module.test_query_ds.df
+    test_gallery_df = data_module.val_gallery_ds.df
 
     results_df = evaluate_reid(
-        query_df=train_calibrator_query_df,
-        gallery_df=train_calibrator_gallery_df,
+        query_df=test_query_df,
+        gallery_df=test_gallery_df,
         data_root=cfg.data_root,
         matcher=matcher,
         device=device
     )
 
-    output_path = "reid_lightglue_results.csv"
-    results_df.to_csv(output_path, index=False)
-    print(f"\nFile saved to: {output_path}")
-
-    val_query_df = get_calibration_subset(data_module.val_query_ds.df, n_per_identity=4, max_total=200)
-    val_gallery_df = data_module.val_gallery_ds.df
-
-    results_df = evaluate_reid(
-        query_df=val_query_df,
-        gallery_df=val_gallery_df,
-        data_root=cfg.data_root,
-        matcher=matcher,
-        device=device
-    )
-
-    output_path = "reid_lightglue_val_results.csv"
+    output_path = "reid_lightglue_test_results.csv"
     results_df.to_csv(output_path, index=False)
     print(f"\nFile saved to: {output_path}")
 
