@@ -158,7 +158,7 @@ def main():
     # print(f"\nFile saved to: {output_path}")
 
     test_query_df = get_calibration_subset(data_module.test_query_ds.df, n_per_identity=4, max_total=200)
-    test_gallery_df = data_module.val_gallery_ds.df
+    test_gallery_df = data_module.test_gallery_ds.df
 
     results_df = evaluate_reid(
         query_df=test_query_df,
