@@ -6,7 +6,7 @@ from data.dataloader import CzechLynxDataModule
 from data.transforms import get_transforms
 from evaluation.retrieval import RetrievalEvaluator
 from models.reid import MegaDescriptorModel
-from evaluation.visualize import run_tsne_analysis, run_umap_analysis
+from evaluation.visualize import run_tsne_analysis
 from evaluation.visualize_retrieval import run_all_visualizations
 
 
@@ -49,15 +49,6 @@ def main():
     print(f"  mAP     : {metrics['map']:.4f}")
 
     if not args.no_viz:
-        print("\nRunning UMAP...")
-        run_umap_analysis(
-            model=model,
-            dataset=dm.test_ds,
-            device=device,
-            val_transform=val_transform,
-            color_by=["identity", "trap_id"],
-            save_path=f"run/{args.run_id}/test_umap.png",
-        )
 
         print("\nRunning t-SNE...")
         run_tsne_analysis(
