@@ -40,7 +40,7 @@ class CzechLynxSplitter:
     def get_query_gallery_from_df(
             self,
             df: pd.DataFrame,
-            n_gallery: int = 1,
+            n_gallery: int = 4,
             seed: int = 42,
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         gallery_idx, query_idx = [], []
