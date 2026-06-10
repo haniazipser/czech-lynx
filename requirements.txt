@@ -1,8 +1,8 @@
 pandas~=3.0.3
 pillow~=12.2.0
-torch~=2.7.1+cu118
+torch~=2.7.1
 numpy~=2.4.6
-torchvision~=0.22.1+cu118
+torchvision~=0.22.1
 pydantic~=2.13.4
 matplotlib~=3.10.9
 wandb~=0.27.0

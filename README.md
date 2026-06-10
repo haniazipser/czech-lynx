@@ -1,5 +1,20 @@
 # czech-lynx
 
+## Project Structure
+```
+.
+├── config            # Config files w presets per model
+├── data              # Datasets
+├── evaluation        # Metrics & evaluation
+├── models            # Model definitions
+├── run               # Per run visualization and model checkpoints (not tracked)
+├── scripts           # Data exploration scripts
+├── tests             # Scripts for inference on test dataset
+├── training          # Training pipeline
+├── utils             # Shared utilities
+├── visualisations    # General Graphs about data 
+├── wildfusion        # Fusion pipeline
+```
 ## Correct Kaggle Dataset Download Flow
 Step 1: Install Kaggle API
 ``` bash

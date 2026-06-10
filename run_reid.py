@@ -1,6 +1,5 @@
 import argparse
 import json
-from xml.parsers.expat import model
 
 import torch
 from pytorch_metric_learning import losses
