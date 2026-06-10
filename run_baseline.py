@@ -1,13 +1,11 @@
 import argparse
-from xml.parsers.expat import model
+
 import torch
 from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR
 
 import wandb
-
-import torch.nn as nn
 from config.presets.baseline import get_config
 from data.dataloader import CzechLynxDataModule
 from data.transforms import get_transforms

@@ -1,10 +1,8 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.model_selection import StratifiedKFold
 from wildfusion.wildfusion import ScoresCalibrator
-
-import pandas as pd
-import matplotlib.pyplot as plt
 from sklearn.calibration import calibration_curve
 
 
